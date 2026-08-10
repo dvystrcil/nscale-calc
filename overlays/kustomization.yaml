@@ -7,4 +7,4 @@ resources:
 # authoritative when it isn't.
 images:
 - name: harbor.sirddail.net/ai/nscale-calc
-  newTag: 0.0.1
+  newTag: 0.0.2
