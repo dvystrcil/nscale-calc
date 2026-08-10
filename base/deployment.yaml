@@ -10,6 +10,13 @@ metadata:
   namespace: nscale-calc
   labels:
     app: nscale-calc
+  annotations:
+    # D-013 (homelab#289): this Deployment consumes the Infisical-managed
+    # nscale-calc-harbor-pull Secret via imagePullSecrets, so it must carry
+    # the reloader annotation itself — on the workload, never on the Secret.
+    # Rotating the Harbor credential otherwise leaves the pod holding a
+    # stale pull secret until something else happens to restart it.
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   selector:
