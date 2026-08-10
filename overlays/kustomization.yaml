@@ -1,0 +1,10 @@
+resources:
+- ../base
+# argocd-image-updater writes the tag here — the IU CR's writeBackTarget is
+# `kustomization:/overlays`. Deliberately the ONLY images: block in this
+# repo: tor-dice carries a second, stale one in base/kustomization.yaml
+# that the overlay silently overrides, which makes the base value look
+# authoritative when it isn't.
+images:
+- name: harbor.sirddail.net/ai/nscale-calc
+  newTag: 0.0.1

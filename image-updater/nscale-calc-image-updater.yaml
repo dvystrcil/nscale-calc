@@ -1,0 +1,21 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: nscale-calc-iu
+spec:
+  applicationRefs:
+  - namePattern: nscale-calc
+    images:
+    - alias: nscale-calc
+      imageName: harbor.sirddail.net/ai/nscale-calc
+      commonUpdateSettings:
+        allowTags: regexp:^[0-9]+\.[0-9]+\.[0-9]+$
+        updateStrategy: semver
+        pullSecret: pullsecret:nscale-calc/nscale-calc-harbor-pull
+        forceUpdate: false
+    writeBackConfig:
+      method: git
+      gitConfig:
+        repository: https://github.com/dvystrcil/nscale-calc.git
+        branch: main
+        writeBackTarget: kustomization:/overlays

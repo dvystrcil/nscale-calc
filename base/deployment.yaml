@@ -1,0 +1,89 @@
+# nscale-calc — static N-scale conversion calculator.
+#
+# Generated from bin/onboard-new-app.py (D-016, homelab#559), then filled
+# in where the generic scaffold stops short: imagePullSecrets, probes, and
+# a seccompProfile, all modelled on the live tor-dice deployment.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nscale-calc
+  namespace: nscale-calc
+  labels:
+    app: nscale-calc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nscale-calc
+  template:
+    metadata:
+      labels:
+        app: nscale-calc
+    spec:
+      imagePullSecrets:
+        - name: nscale-calc-harbor-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: nscale-calc
+        image: harbor.sirddail.net/ai/nscale-calc:0.0.1
+        ports:
+        - containerPort: 8080
+          name: http
+        # Sized for what this actually is: nginx serving one 19 KB file.
+        # The scaffold's generic 256Mi/512Mi is an order of magnitude more
+        # than the image needs. VPA (updateMode Off, per D-012) will
+        # recommend real numbers once there's a few days of data.
+        resources:
+          requests:
+            memory: 24Mi
+            cpu: 10m
+          limits:
+            memory: 128Mi
+            cpu: 200m
+        # /healthz is served from memory by the nginx config and never
+        # redirects. Probing a path that 302s means the probe tests
+        # wherever the redirect lands, not the path you named — that is
+        # homelab#820, where trilium probed /login, followed the redirect
+        # onto a rate-limited route, and was killed 151 times in 23h.
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          failureThreshold: 30
+          periodSeconds: 2
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 30
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        # nginx-unprivileged writes only its pid and client temp files,
+        # both under /tmp — verified live before this manifest was written
+        # by running the image with --read-only --tmpfs /tmp as uid 1000.
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      hostNetwork: false
+      hostPID: false
+      volumes:
+      - name: tmp
+        emptyDir: {}
