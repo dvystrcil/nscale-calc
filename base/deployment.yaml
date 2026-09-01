@@ -46,13 +46,14 @@ spec:
         # The scaffold's generic 256Mi/512Mi is an order of magnitude more
         # than the image needs. VPA (updateMode Off, per D-012) will
         # recommend real numbers once there's a few days of data.
+        # D-012 (VPA epic homelab#455): requests right-sized from the
+        # Off-mode VPA's measured target. Limits per D-022 (homelab#1212). See notes in the PR body.
         resources:
           requests:
-            memory: 24Mi
-            cpu: 10m
+            memory: 250Mi
+            cpu: 25m
           limits:
-            memory: 128Mi
-            cpu: 200m
+            memory: 320Mi
         # /healthz is served from memory by the nginx config and never
         # redirects. Probing a path that 302s means the probe tests
         # wherever the redirect lands, not the path you named — that is
