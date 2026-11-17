@@ -9,5 +9,4 @@ resources:
   - harbor-pull-secret.yaml
   - deployment.yaml
   - service.yaml
-  - image-updater-rbac.yaml
   - vpa.yaml
